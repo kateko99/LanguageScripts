@@ -57,7 +57,7 @@ def separate_time(time):
         hours = '24'
     elif(hours[0] == '0'):
         hours = hours[1]
-    if(len(minutes)>1 and minutes[0] == '0'):
+    if(len(minutes) > 1 and minutes[0] == '0'):
         minutes = minutes[1]
 
     time_sep = [int(hours), int(minutes)]
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         # check the last character and cut if is not digit
         is_digit = match[-1].isdigit()
         if not is_digit:
-            start_line = start_line -1
+            start_line -= 1
             match = match[:-1]
 
         # process and save in variable

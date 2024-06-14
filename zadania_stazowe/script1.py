@@ -13,7 +13,7 @@ def dec_fem (noun, case):
         print("Declination unavailable")
         return 0
         
-def check_declination (case):
+def check_declination(case):
     number = 0
     if(case == 'gen'):
         number = 1

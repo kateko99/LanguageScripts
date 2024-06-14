@@ -5,8 +5,6 @@ def dec_fem (noun, case):
     response = morf.generate(noun)
     case_num = check_declination(case)
     len_resp = len(response)
-    print(case_num)
-    print(response)
     if(len_resp-1 > case_num):
         return response[case_num][0]
     else:

@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 
 # Function to check the case of the word 'godzina'
-# inst = the same form as dat! So it has the same name here.
+# # inst = the same form as dat! So it has the same name here
 def check_case(text):
     result = 'nom'
     if(text == 'godziny'):
@@ -28,74 +28,75 @@ def check_case(text):
         result = 'voc'
     return result
 
-# Function that gets a number and case, and generate femminal ordinal text
-def num_to_ordinal(hour, case):
-    text = num2words(hour, to='ordinal', lang='pl')
-    if(hour != 3):
+# Function to generate femminile ordinal text from number
+def num_to_ordinal(hours, case):
+    text = num2words(hours, to='ordinal', lang='pl')
+    if(hours != 3):
         text = text[:-1]
-    if(hour == 2 and (case == 'gen' or case == 'dat')):
+    if(hours == 2 and (case == 'gen' or case == 'dat')):
         result = text + 'i' + femm_dec[case]
     else:
         result = text + femm_dec[case]
     return result
 
-# Function to separate hour and minutes from digital regex
+# Function to separate hours and minutes from digital regex
 def separate_time(time):
-    hour = minute = '0'
+    hours = minutes = '0'
 
     # cut hours and minutes
     if(':' in time):
-        hour = time.split(':')[0]
-        minute = time.split(':')[1]
+        hours = time.split(':')[0]
+        minutes = time.split(':')[1]
     elif('.' in time):
-        hour = time.split('.')[0]
-        minute = time.split('.')[1]
+        hours = time.split('.')[0]
+        minutes = time.split('.')[1]
     else:
-        hour = time
+        hours = time
 
-    # reduce zero at the begining
-    if(hour[0] == '0'):
-        hour = hour[1]
-    if(len(minute)>1 and minute[0] == '0'):
-        minute = minute[1]
+    # process midnight and reduce zero at the beginning
+    if(hours == '00'):
+        hours = '24'
+    elif(hours[0] == '0'):
+        hours = hours[1]
+    if(len(minutes)>1 and minutes[0] == '0'):
+        minutes = minutes[1]
 
-    time_sep = [int(hour), int(minute)]
+    time_sep = [int(hours), int(minutes)]
     return time_sep
 
 
-# Function to generate text from separate time, in base of case
+# Function to generate text from separate time depending on case
 def number_to_text(time_object, case):
+    hours = time_object[0]
+    minutes = time_object[1]
     part1 = part2 = ''
-    hour = time_object[0]
-    minute = time_object[1]
-    if(hour < 21):
-        part1 = num_to_ordinal(hour, case)
+    if(hours < 21):
+        part1 = num_to_ordinal(hours, case)
     else:
-        unit = hour % 10
-        decimal = hour-unit
+        unit = hours % 10
+        decimal = hours - unit
         part1 = num_to_ordinal(decimal, case) + ' ' + num_to_ordinal(unit, case)
-    if(minute != 0):
-        part2 = num2words(minute, lang='pl')
-    result = part1 + ' ' + part2
+    if(minutes != 0):
+        part2 = ' ' + num2words(minutes, lang='pl')
+    result = part1 + part2
     return result
 
 # Main function to change string like 'godzina 2:34', 'godzinę 1.30' into text
 def match_to_text(match):
 
-    # Check the declination (name regex)
+    # check the declination (name regex)
     pattern_name = re.compile(r'(godzin)[a-ząę]+')
-    z = re.search(pattern_name, match)
-    name = z.group()
+    x = re.search(pattern_name, match)
+    name = x.group()
     case_dec = check_case(name)
 
-    # Check the number (digital regex) and separate hour/minutes
+    # check the number (digital regex) and separate hours/minutes
     pattern_number = re.compile(r'[0-9\.\:]+')
     y = re.search(pattern_number, match)
-    if(y is not None):
-        number = y.group()
-        time = separate_time(number)
+    number = y.group()
+    time = separate_time(number)
 
-    # Create text
+    # create text
     result_text = number_to_text(time, case_dec)
     return result_text
 
@@ -104,13 +105,12 @@ def match_to_text(match):
 file = open(args.input_file) 
 content = file.read()
 file.close()
-print('Start TEST OPEN FILE')
 pattern = re.compile(r'(godzin)[a-ząę]+\s+[0-9\.\:]+')
 pattern_hour = re.compile(r'(godzin)[a-ząę]+')
 content2 = ''
 
 while(len(content) > 0):
-    print("START INTERATION")
+    # find main pattern
     x = re.search(pattern, content)
     if x is None:
         content2 = content2 + content
@@ -119,24 +119,20 @@ while(len(content) > 0):
     lines = x.span()
     end_line = lines[0]
     start_line = lines[1]
-    # check the last character and cut if not digit
+
+    # check the last character and cut if is not digit
     is_digit = match[-1].isdigit()
     if not is_digit:
         start_line = start_line -1
         match = match[:-1]
-    print(match[-1])
-    result_fin = match_to_text(match)
-    print("WYNIK: " + result_fin)
 
-    # Save to variable
-    p_hour = re.search(pattern_hour, match)
-    match_h = p_hour.group()
-    save_cont = content[:end_line] + match_h + ' ' + result_fin
-    print('WYNIK: ' + save_cont)
+    # process and save in variable
+    result_fin = match_to_text(match)
+    hour = re.search(pattern_hour, match)
+    match_hour = hour.group()
+    save_cont = content[:end_line] + match_hour + ' ' + result_fin
     content2 = content2 + save_cont
     content = content[start_line:]
-        
-print(content2)
 
 file2 = open(args.output_file, 'w')
 file2.write(content2)

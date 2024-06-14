@@ -5,7 +5,6 @@ import re
 femm_dec = {'nom': 'a', 'gen': 'ej', 'dat': 'ej', 'acc': 'ą', 
 'loc': 'ą', 'inst': 'ej', 'voc': 'a'}
 
-
 parser = argparse.ArgumentParser(description = 'Change number to words')
 parser.add_argument('input_file', type = str, help = 'Path to the file with text to change')
 parser.add_argument('output_file', type = str, help = "Path to write the output file")
@@ -13,7 +12,7 @@ args = parser.parse_args()
 
 
 # Function to check the case of the word 'godzina'
-# # inst = the same form as dat! So it has the same name here
+# inst = the same form as dat, so it has the same name here
 def check_case(text):
     result = 'nom'
     if(text == 'godziny'):
@@ -58,7 +57,7 @@ def separate_time(time):
         hours = '24'
     elif(hours[0] == '0'):
         hours = hours[1]
-    if(len(minutes)>1 and minutes[0] == '0'):
+    if(len(minutes) > 1 and minutes[0] == '0'):
         minutes = minutes[1]
 
     time_sep = [int(hours), int(minutes)]
@@ -102,37 +101,39 @@ def match_to_text(match):
 
 
 # Main function to process text in files
-file = open(args.input_file) 
-content = file.read()
-file.close()
-pattern = re.compile(r'(godzin)[a-ząę]+\s+[0-9\.\:]+')
-pattern_hour = re.compile(r'(godzin)[a-ząę]+')
-content2 = ''
 
-while(len(content) > 0):
-    # find main pattern
-    x = re.search(pattern, content)
-    if x is None:
-        content2 = content2 + content
-        break
-    match = x.group()
-    lines = x.span()
-    end_line = lines[0]
-    start_line = lines[1]
+if __name__ == '__main__':
+    file = open(args.input_file) 
+    content = file.read()
+    file.close()
+    pattern = re.compile(r'(godzin)[a-ząę]+\s+[0-9\.\:]+')
+    pattern_hour = re.compile(r'(godzin)[a-ząę]+')
+    content2 = ''
 
-    # check the last character and cut if is not digit
-    is_digit = match[-1].isdigit()
-    if not is_digit:
-        start_line = start_line -1
-        match = match[:-1]
+    while(len(content) > 0):
+        # find main pattern
+        x = re.search(pattern, content)
+        if x is None:
+            content2 = content2 + content
+            break
+        match = x.group()
+        lines = x.span()
+        end_line = lines[0]
+        start_line = lines[1]
 
-    # process and save in variable
-    result_fin = match_to_text(match)
-    hour = re.search(pattern_hour, match)
-    match_hour = hour.group()
-    save_cont = content[:end_line] + match_hour + ' ' + result_fin
-    content2 = content2 + save_cont
-    content = content[start_line:]
+        # check the last character and cut if is not digit
+        is_digit = match[-1].isdigit()
+        if not is_digit:
+            start_line -= 1
+            match = match[:-1]
 
-file2 = open(args.output_file, 'w')
-file2.write(content2)
+        # process and save in variable
+        result_fin = match_to_text(match)
+        hour = re.search(pattern_hour, match)
+        match_hour = hour.group()
+        save_cont = content[:end_line] + match_hour + ' ' + result_fin
+        content2 = content2 + save_cont
+        content = content[start_line:]
+
+    file2 = open(args.output_file, 'w')
+    file2.write(content2)
